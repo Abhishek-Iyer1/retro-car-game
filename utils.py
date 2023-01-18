@@ -2,8 +2,9 @@ import pygame
 from pygame.locals import *
 from pygame.event import Event
 from pygame import Surface
+from pygame.time import Clock
 from global_values import *
-from player import Player, Meter
+from player import Player, Meter, FuelBox
 
 def paint_game_screen(screen: Surface):
     # Make a background environment for retro racing car game
@@ -26,7 +27,7 @@ def handle_event(event: Event) -> list[bool]:
     global moveLeft, moveRight, moveUp, moveDown
     if event.type == KEYDOWN:
         # Handle movement keys LEFT, RIGHT, UP, DOWN
-        print(event.key)
+        # print(event.key)
         if event.key == K_LEFT or event.key == K_a:
             moveRight = False
             moveLeft = True
@@ -72,7 +73,6 @@ def handle_movement(move_status: list[bool], player: Player):
         player.move_down()
 
 def check_if_game_over(screen: Surface, fuel_meter: Meter):
-    print(fuel_meter.value)
     if fuel_meter.value <= 0:
         game_over = True
     else:
@@ -84,3 +84,28 @@ def paint_game_over_screen(screen: Surface):
     font = pygame.font.SysFont('arial', 60, bold=True)
     text = font.render("GAME OVER", True, BLACK)
     screen.blit(text, (MAX_X // 2 - 120, MAX_Y // 2 - 60))
+
+def handle_additional_clocks(clocks: list[Clock], time_elapsed_since_fuel_leak, time_elapsed_since_fuel_box, time_elapsed_since_last_move):
+    # global time_elapsed_since_fuel_leak, time_elapsed_since_fuel_box
+    fuel_meter_clock, fuel_box_clock, movement_clock = clocks
+    dt_for_fuel_meter = fuel_meter_clock.tick()
+    dt_for_fuel_box = fuel_box_clock.tick()
+    dt_for_movement = movement_clock.tick()
+    time_elapsed_since_fuel_leak += dt_for_fuel_meter
+    time_elapsed_since_fuel_box += dt_for_fuel_box
+    time_elapsed_since_last_move += dt_for_movement
+    return time_elapsed_since_fuel_leak, time_elapsed_since_fuel_box, time_elapsed_since_last_move
+
+def check_player_fuelbox(player: Player, fuel_box: FuelBox, fuel_meter: Meter):
+    
+    if player.rect.colliderect(fuel_box.fuel_graphic):
+        
+        if fuel_meter.value + fuel_box.value >= 100:
+            fuel_meter.value = 100
+            fuel_meter.refill(100 - fuel_meter.value)
+        else:
+            fuel_meter.refill(fuel_box.value)
+        
+        fuel_box.destroy()
+
+        

@@ -50,14 +50,40 @@ class Meter():
 
     def leak(self, time_elapsed_since_fuel_leak):
         if time_elapsed_since_fuel_leak > 1000:
-            self.move(-10)
+            self.move(-5)
             time_elapsed_since_fuel_leak = 0
         return time_elapsed_since_fuel_leak
+    
+    def refill(self, amount):
+        self.move(amount)
+
     def move(self, value: float):
         self.value += value
-        self.meter_graphic.h += value
-        self.meter_graphic.top -= value
+        self.meter_graphic.height = self.value
+        # self.meter_graphic.h += value
+        # self.meter_graphic.top -= value
 
     def update(self, screen: Surface):
         pygame.draw.rect(screen, RED, self.meter_graphic, border_radius=10)
         pygame.draw.rect(screen, BLACK, self.outline, 5, 10)
+
+class FuelBox():
+    def __init__(self, screen, spawn_coords: list[int]):
+        self.fuel_graphic = pygame.draw.rect(screen, BLACK, spawn_coords, border_radius=10)
+        self.destroyed = True
+        self.value = 50
+
+    def spawn(self, screen: Surface, spawn_coords: list[int]):
+        self.fuel_graphic = pygame.draw.rect(screen, BLACK, spawn_coords, border_radius=10)
+        self.destroyed = False
+              
+    def destroy(self):
+         self.destroyed = True
+         self.value = 0
+
+    def move(self, time_elapsed_since_fuel_leak):
+         self.fuel_graphic.move_ip((0, 5))
+
+    def update(self, screen: Surface):
+        if not self.destroyed:
+            pygame.draw.rect(screen, BLACK, self.fuel_graphic, border_radius=10)
